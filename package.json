@@ -4,7 +4,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev":  "nodemon index.js",
+    "dev": "nodemon index.js",
     "start": "node index.js"
   },
   "repository": {
@@ -20,7 +20,10 @@
   "homepage": "https://github.com/CattCloud/fastcrm-express-api#readme",
   "description": "",
   "dependencies": {
+    "bcrypt": "^6.0.0",
+    "dotenv": "^17.2.1",
     "express": "^5.1.0",
+    "mongoose": "^8.18.0",
     "nodemon": "^3.1.10"
   }
 }
