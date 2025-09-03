@@ -14,3 +14,6 @@ multiples documento usuarios(los logueados)
 - Usa usernameLower para búsquedas insensibles a mayúsculas.
 - Incrementa accessCount en cada login exitoso (gamificación, métricas).
 - Encripta password en el servicio antes de guardar (bcrypt.hash(...)).
+
+## IDEA 2
+- Enriquecer las respuesta de la API

@@ -1,5 +1,7 @@
 const {authors} = require("../models/Autor");
 const { AppError } = require('../utils/AppError');
+const bcrypt = require("bcrypt");
+
 
 async function getAuthors(){
     try{
@@ -11,6 +13,32 @@ async function getAuthors(){
     }
 }
 
+async function getGuestAuthor() {
+  try {
+    const guest = await authors.findOne({ role: "invitado" });
+    if (!guest) {
+      throw new AppError("Usuario invitado no encontrado", 404);
+    }
+    return guest;
+  } catch (e) {
+    console.log("Error getGuestAuthor:", e);
+    throw e;
+  }
+}
+
+async function getAuthorByID(id) {
+  try {
+    const autorBD = await authors.findById(id);
+    if (!autorBD) {
+      throw new AppError("Autor no encontrado", 400);
+    }
+    return autorBD;
+  } catch (e) {
+    console.log("Error getAuthorByID:", e);
+    throw e;
+  }
+}
+
 async function createAuthor(newAutor) {
     try{
         await authors.create(newAutor);
@@ -18,6 +46,27 @@ async function createAuthor(newAutor) {
         console.log("Error createAutor: ",e)
         throw e;
     }
+}
+
+async function loginAuthor({ username, password }) {
+  try {
+    const usernameLower = username.toLowerCase();
+    const autorBD = await authors.findOne({ usernameLower });
+
+    if (!autorBD) {
+      throw new AppError("Usuario no encontrado", 404);
+    }
+
+    const passwordValida = await bcrypt.compare(password, autorBD.password);
+    if (!passwordValida) {
+      throw new AppError("Contraseña incorrecta", 401);
+    }
+
+    return autorBD;
+  } catch (e) {
+    console.log("Error loginAuthor:", e);
+    throw e;
+  }
 }
 
 
@@ -44,6 +93,9 @@ async function validacionAuthor(newAutor) {
 module.exports={
   createAuthor,
   validacionAuthor,
-  getAuthors
+  getAuthors,
+  getAuthorByID,
+  getGuestAuthor,
+  loginAuthor
 }
 

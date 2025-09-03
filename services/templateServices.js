@@ -1,27 +1,31 @@
-const {templates} = require("../models/Template");
+const { templates } = require("../models/Template");
 const { AppError } = require('../utils/AppError');
 const { authors } = require("../models/Autor");
 const { etiquetasSugeridas } = require("../utils/etiquetasSugeridas");
-const unlistedTags  = require("../models/UnlistedTag");
-const suggestedTags  = require("../models/SuggestedTag");
+const unlistedTags = require("../models/UnlistedTag");
+const suggestedTags = require("../models/SuggestedTag");
+const { getAuthorByID } = require("./authorsServices")
 
-async function getTemplates(){
-    try{
-        const templatesBD = await templates.find();
-        return templatesBD;
-    }catch(e){
-        console.log("Error getTemplates: ",e)
-        throw e;   
-    }
+async function getTemplates() {
+  try {
+    const templatesBD = await templates.find().populate({
+      path: "author",
+      select: "username role isActive accessCount createdAt updatedAt"
+    });
+    return templatesBD;
+  } catch (e) {
+    console.log("Error getTemplates: ", e)
+    throw e;
+  }
 }
 
 async function createTemplate(newTemplate) {
-    try{
-       await templates.create(newTemplate);
-    }catch(e){
-        console.log("Error createTemplate: ",e)
-        throw e;
-    }
+  try {
+    return await templates.create(newTemplate);
+  } catch (e) {
+    console.log("Error createTemplate: ", e)
+    throw e;
+  }
 }
 
 
@@ -79,38 +83,35 @@ async function validarTemplatePersonalizado(newTemplate) {
 
 
 
-async function updateTemplate(id, updatedFields, userId) {
+async function updateTemplate(id, updatedFields) {
   try {
     const plantillaBD = await templates.findById(id);
     if (!plantillaBD) {
       throw new AppError("Plantilla no encontrada", 404, "id");
     }
 
-    if (String(plantillaBD.author) !== String(userId)) {
-      throw new AppError("No tienes permiso para editar esta plantilla", 403, "author");
-    }
-
-    // Solo permitir campos editables
     const camposPermitidos = ["type", "content", "labels"];
-
     const camposInvalidos = Object.keys(updatedFields).filter(c => !camposPermitidos.includes(c));
     if (camposInvalidos.length > 0) {
       throw new AppError(`Campos no permitidos: ${camposInvalidos.join(", ")}`, 400, "payload");
     }
 
-    // Validar campos como si fuera nuevo
     const plantillaActualizada = {
       ...plantillaBD.toObject(),
       ...updatedFields,
-      author: plantillaBD.author // proteger autor
+      author: plantillaBD.author
     };
 
     await validarTemplatePersonalizado(plantillaActualizada);
-
-    // Actualizar en BD
     await templates.updateOne({ _id: id }, { $set: updatedFields });
 
-    return { mensaje: "Plantilla actualizada correctamente" };
+     
+    const plantillaFinal = await getTemplateByID(id);
+
+    return {
+      mensaje: "Plantilla actualizada correctamente",
+      template: plantillaFinal
+    };
   } catch (e) {
     console.log("Error updateTemplate: ", e);
     throw e;
@@ -118,19 +119,17 @@ async function updateTemplate(id, updatedFields, userId) {
 }
 
 
-async function deleteTemplate(id, userId) {
+
+async function deleteTemplate(id) {
   try {
     const plantillaBD = await templates.findById(id);
     if (!plantillaBD) {
       throw new AppError("Plantilla no encontrada", 404, "id");
     }
-
-    
+    /*
     if (String(plantillaBD.author) !== String(userId)) {
       throw new AppError("No tienes permiso para eliminar esta plantilla", 403, "author");
-    }
-
-    
+    }*/
     await templates.deleteOne({ _id: id });
 
     return { mensaje: "Plantilla eliminada correctamente" };
@@ -140,12 +139,66 @@ async function deleteTemplate(id, userId) {
   }
 }
 
+async function getTemplateByID(idTemplate) {
+  try {
+    const plantillaConAutor = await templates.findById(idTemplate).populate({
+      path: "author",
+      select: "username role isActive accessCount createdAt updatedAt"
+    });
+    if (!plantillaConAutor) {
+      throw new AppError("Plantilla no encontrada", 404, "id");
+    }
+    return plantillaConAutor;
+  } catch (e) {
+    console.log("Error getTemplateByID:", e);
+  }
+}
 
-module.exports={
-    getTemplates,
-    createTemplate,
-    validarTemplatePersonalizado,
-    updateTemplate,
-    deleteTemplate
+async function getTemplatesByRole(role) {
+  try {
+    const templatesBD = await templates
+      .find()
+      .populate({
+        path: "author",
+        select: "username role isActive accessCount createdAt updatedAt",
+        match: { role, isActive: true }
+      });
+
+    // Filtrar solo las plantillas que sí tienen autor con ese rol
+    const filtradas = templatesBD.filter(t => t.author); // populate devuelve null si no coincide
+
+    return filtradas;
+  } catch (e) {
+    console.log("Error getTemplatesByRole:", e);
+    throw e;
+  }
+}
+
+async function getTemplatesByAuthorId(authorId) {
+  try {
+    await getAuthorByID(authorId); //Verifica que el autor exista
+    const templatesBD = await templates
+      .find({ author: authorId })
+      .populate({
+        path: "author",
+        select: "username role isActive accessCount createdAt updatedAt"
+      });
+    return templatesBD;
+  } catch (e) {
+    console.log("Error getTemplatesByAuthorId:", e);
+    throw e;
+  }
+}
+
+
+module.exports = {
+  getTemplates,
+  createTemplate,
+  validarTemplatePersonalizado,
+  updateTemplate,
+  deleteTemplate,
+  getTemplatesByRole,
+  getTemplatesByAuthorId,
+  getTemplateByID
 }
 

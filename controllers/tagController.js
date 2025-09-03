@@ -2,6 +2,7 @@ const {
   createSuggestedTag,
   createUnlistedTag
 } = require("../services/tagsServices");
+const { AppError } = require('../utils/AppError');
 
 const createSuggestedTagController = async (req, res, next) => {
   try {

@@ -4,6 +4,9 @@ const express=require("express");
 const app=express();
 const {mongooseErrorTransform,errorHandler}=require("./middlewares/errorMiddlewares");
 const { cargarEtiquetasSugeridas } = require("./utils/etiquetasSugeridas");
+const cors = require("./middlewares/cors");
+
+
 
 // Rutas principales
 const routesTemplate = require('./routes/templateRoutes');
@@ -12,15 +15,8 @@ const routesTag = require("./routes/tagsRouter");
 //Establecer conexion con la bd
 conectarDB();
 
-// Middleware temporal para simular autenticación
-app.use((req, res, next) => {
-  req.user = { id: "68b32dccd8f3dc2924b21840" }; 
-  next();
-});
-
-
 app.use(express.json()); 
-
+app.use(cors);
 cargarEtiquetasSugeridas();
 
 app.use('/template', routesTemplate);
