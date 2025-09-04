@@ -17,11 +17,13 @@ const Template = new mongoose.Schema(
                 "urgente",
                 "confirmación",
                 "reprogramación"
-            ]
+            ],
+            //index: true
         },
         content: {
             type: String,
-            required: true
+            required: true,
+            index: true
         },
         labels: {
             type: [String], //Array de Strings

@@ -5,6 +5,7 @@ const { etiquetasSugeridas } = require("../utils/etiquetasSugeridas");
 const unlistedTags = require("../models/UnlistedTag");
 const suggestedTags = require("../models/SuggestedTag");
 const { getAuthorByID } = require("./authorsServices")
+const { TEMPLATE_TYPES } = require("../utils/constants");
 
 async function getTemplates() {
   try {
@@ -105,7 +106,7 @@ async function updateTemplate(id, updatedFields) {
     await validarTemplatePersonalizado(plantillaActualizada);
     await templates.updateOne({ _id: id }, { $set: updatedFields });
 
-     
+
     const plantillaFinal = await getTemplateByID(id);
 
     return {
@@ -190,6 +191,130 @@ async function getTemplatesByAuthorId(authorId) {
   }
 }
 
+function validateType(type) {
+  if (!type) return;
+  const normalizedType = type.trim().toLowerCase();
+  const allowedTypes = TEMPLATE_TYPES.map(t => t.toLowerCase());
+  if (!allowedTypes.includes(normalizedType)) {
+    throw new AppError("Tipo de plantilla inválido", 400, "type");
+  }
+  return normalizedType;
+}
+
+async function searchTemplatesByKeywordAndRole(keyword, role, type) {
+  try {
+    if (!keyword || typeof keyword !== 'string' || keyword.trim().length < 2) {
+      throw new AppError("Palabra clave inválida", 400, "query");
+    }
+
+    validateType(type);
+
+    const regex = new RegExp(keyword.trim(), 'i');
+    const query = {
+      content: { $regex: regex },
+      ...(type && { type })
+    };
+    console.log("Keyword:", keyword);
+    // Benchmark
+    const explain = await templates.find(query).explain("executionStats");
+    console.log("📊 [Benchmark] searchTemplatesByKeywordAndRole");
+    console.log("Stage:", explain.queryPlanner.winningPlan.stage);
+    console.log("Index usado:", explain.queryPlanner.winningPlan.inputStage?.indexName || "Ninguno");
+    console.log("Docs examinados:", explain.executionStats.totalDocsExamined);
+    console.log("Documentos retornados:", explain.executionStats.nReturned);
+    console.log("Tiempo:", explain.executionStats.executionTimeMillis + "ms");
+
+    const rawTemplates = await templates.find(query).populate({
+      path: "author",
+      select: "username role isActive accessCount createdAt updatedAt"
+    });
+
+    const filteredTemplates = rawTemplates.filter(t => {
+      return t.author && t.author.role === role && t.author.isActive;
+    });
+
+    return filteredTemplates;
+  } catch (e) {
+    console.log("Error searchTemplatesByKeywordAndRole:", e);
+    throw e;
+  }
+}
+
+async function searchTemplatesByKeywordAndAuthorId(keyword, authorId, type) {
+  try {
+    if (!keyword || typeof keyword !== 'string' || keyword.trim().length < 2) {
+      throw new AppError("Palabra clave inválida", 400, "query");
+    }
+
+    if (!authorId || typeof authorId !== 'string') {
+      throw new AppError("ID de autor inválido", 400, "author");
+    }
+
+    validateType(type);
+
+    const regex = new RegExp(keyword.trim(), 'i');
+    const query = {
+      content: { $regex: regex },
+      author: authorId,
+      ...(type && { type })
+    };
+    console.log("Keyword:", keyword);
+    // Benchmark
+    const explain = await templates.find(query).explain("executionStats");
+    console.log("📊 [Benchmark] searchTemplatesByKeywordAndAuthorId");
+    console.log("Stage:", explain.queryPlanner.winningPlan.stage);
+    console.log("Index usado:", explain.queryPlanner.winningPlan.inputStage?.indexName || "Ninguno");
+    console.log("Docs examinados:", explain.executionStats.totalDocsExamined);
+    console.log("Documentos retornados:", explain.executionStats.nReturned);
+    console.log("Tiempo:", explain.executionStats.executionTimeMillis + "ms");
+
+    const templatesBD = await templates.find(query).populate({
+      path: "author",
+      select: "username role isActive accessCount createdAt updatedAt"
+    });
+
+    return templatesBD;
+  } catch (e) {
+    console.log("Error searchTemplatesByKeywordAndAuthorId:", e);
+    throw e;
+  }
+}
+
+async function searchTemplatesByKeyword(q, type) {
+  try {
+    if (!q || typeof q !== 'string' || q.trim().length < 2) {
+      throw new AppError("Palabra clave inválida", 400, "query");
+    }
+
+    validateType(type);
+
+    const regex = new RegExp(q.trim(), 'i');
+    const query = {
+      content: { $regex: regex },
+      ...(type && { type })
+    };
+    console.log("Keyword:", q);
+
+    // Benchmark
+    const explain = await templates.find(query).explain("executionStats");
+    
+    console.log("📊 [Benchmark] searchTemplatesByKeyword");
+    console.log("Stage:", explain.queryPlanner.winningPlan.stage);
+    console.log("Index usado:", explain.queryPlanner.winningPlan.inputStage?.indexName || "Ninguno");
+    console.log("Docs examinados:", explain.executionStats.totalDocsExamined);
+    console.log("Documentos retornados:", explain.executionStats.nReturned);
+    console.log("Tiempo:", explain.executionStats.executionTimeMillis + "ms");
+
+    return await templates.find(query).populate({
+      path: "author",
+      select: "username role isActive accessCount createdAt updatedAt"
+    });
+
+  } catch (e) {
+    console.log("Error searchTemplatesByKeyword:", e);
+    throw e;
+  }
+}
 
 module.exports = {
   getTemplates,
@@ -199,6 +324,9 @@ module.exports = {
   deleteTemplate,
   getTemplatesByRole,
   getTemplatesByAuthorId,
-  getTemplateByID
+  getTemplateByID,
+  searchTemplatesByKeyword,
+  searchTemplatesByKeywordAndRole,
+  searchTemplatesByKeywordAndAuthorId
 }
 

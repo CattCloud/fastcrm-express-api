@@ -3,7 +3,7 @@ const { AppError } = require('../utils/AppError');
 
 
 const { getTemplates,createTemplate, validarTemplatePersonalizado,updateTemplate,deleteTemplate,getTemplatesByRole,
-    getTemplatesByAuthorId,getTemplateByID } = require("../services/templateServices");
+    getTemplatesByAuthorId,getTemplateByID,searchTemplatesByKeywordAndAuthorId,searchTemplatesByKeywordAndRole,searchTemplatesByKeyword } = require("../services/templateServices");
 
 
 const postController = async (req, res, next) => {
@@ -42,10 +42,6 @@ async function updateTemplateController(req, res, next) {
     const camposActualizados = req.body;
     console.log("Campos a actualizar:",camposActualizados);
 
-    /*if (!userId) {
-      throw new AppError("Usuario no autenticado", 401, "auth");
-    }*/
-    
     const resultado = await updateTemplate(id, camposActualizados);
     res.status(200).json(resultado);
   } catch (error) {
@@ -100,13 +96,75 @@ const getTemplatesByAuthorIdController = async (req, res, next) => {
 };
 
 
+const searchTemplatesIDController = async (req, res, next) => {
+  try {
+    const { q, id, type } = req.query;
+
+    if (!q || typeof q !== "string" || q.trim().length < 2) {
+      throw new AppError("La palabra clave debe tener al menos 2 caracteres", 400, "query");
+    }
+
+    if (!id || typeof id !== "string") {
+      throw new AppError("ID de autor no proporcionado o inválido", 400, "authorId");
+    }
+
+    const templatesBD = await searchTemplatesByKeywordAndAuthorId(q, id, type);
+    res.status(200).json(templatesBD);
+  } catch (e) {
+    console.log("Error searchTemplatesIDController:", e);
+    next(e);
+  }
+};
+
+
+
+const searchTemplatesRolController = async (req, res, next) => {
+  try {
+    const { q, role, type } = req.query;
+
+    if (!q || typeof q !== "string" || q.trim().length < 2) {
+      throw new AppError("La palabra clave debe tener al menos 2 caracteres", 400, "query");
+    }
+
+    if (!role || typeof role !== "string") {
+      throw new AppError("Role no proporcionado o inválido", 400, "role");
+    }
+
+    const templatesBD = await searchTemplatesByKeywordAndRole(q, role, type);
+    res.status(200).json(templatesBD);
+  } catch (e) {
+    console.log("Error searchTemplatesRolController:", e);
+    next(e);
+  }
+};
+
+const searchTemplatesController = async (req, res, next) => {
+  try {
+    const { q, type } = req.query;
+
+    if (!q || typeof q !== "string" || q.trim().length < 2) {
+      throw new AppError("La palabra clave debe tener al menos 2 caracteres", 400, "query");
+    }
+
+    const templatesBD = await searchTemplatesByKeyword(q, type);
+    res.status(200).json(templatesBD);
+  } catch (e) {
+    console.log("Error searchTemplatesController:", e);
+    next(e);
+  }
+};
+
+
 module.exports = {
   postController,
   getTemplatesController,
   updateTemplateController,
   deleteTemplateController,
   getTemplatesByRoleController,
-  getTemplatesByAuthorIdController
+  getTemplatesByAuthorIdController,
+  searchTemplatesController,
+  searchTemplatesIDController,
+  searchTemplatesRolController
 };
 
 

@@ -5,6 +5,9 @@ const app = express();
 const { mongooseErrorTransform, errorHandler } = require("./middlewares/errorMiddlewares");
 const { cargarEtiquetasSugeridas } = require("./utils/etiquetasSugeridas");
 const cors = require("./middlewares/cors");
+const insertarPlantillasMasivas = require("./utils/insercionMasiva");
+
+
 
 // Rutas principales
 const routesTemplate = require('./routes/templateRoutes');
@@ -28,6 +31,7 @@ conectarDB()
     app.listen(port, () => {
       console.log(`✅ Servidor corriendo en puerto ${port}`);
     });
+    //insertarPlantillasMasivas();
   })
   .catch((err) => {
     console.error("❌ Error al conectar a MongoDB:", err);
