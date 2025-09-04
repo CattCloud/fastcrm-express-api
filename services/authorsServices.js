@@ -54,12 +54,12 @@ async function loginAuthor({ username, password }) {
     const autorBD = await authors.findOne({ usernameLower });
 
     if (!autorBD) {
-      throw new AppError("Usuario no encontrado", 404);
+      throw new AppError("Usuario no encontrado", 404,"username");
     }
 
     const passwordValida = await bcrypt.compare(password, autorBD.password);
     if (!passwordValida) {
-      throw new AppError("Contraseña incorrecta", 401);
+      throw new AppError("Contraseña incorrecta", 401,"password");
     }
 
     return autorBD;
