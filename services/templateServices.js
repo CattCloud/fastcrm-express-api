@@ -121,16 +121,13 @@ async function updateTemplate(id, updatedFields) {
 
 
 
+
 async function deleteTemplate(id) {
   try {
     const plantillaBD = await templates.findById(id);
     if (!plantillaBD) {
       throw new AppError("Plantilla no encontrada", 404, "id");
     }
-    /*
-    if (String(plantillaBD.author) !== String(userId)) {
-      throw new AppError("No tienes permiso para eliminar esta plantilla", 403, "author");
-    }*/
     await templates.deleteOne({ _id: id });
 
     return { mensaje: "Plantilla eliminada correctamente" };
@@ -207,22 +204,14 @@ async function searchTemplatesByKeywordAndRole(keyword, role, type) {
       throw new AppError("Palabra clave inválida", 400, "query");
     }
 
-    validateType(type);
+    validateType(type); // validación defensiva
 
     const regex = new RegExp(keyword.trim(), 'i');
+
     const query = {
       content: { $regex: regex },
       ...(type && { type })
     };
-    console.log("Keyword:", keyword);
-    // Benchmark
-    const explain = await templates.find(query).explain("executionStats");
-    console.log("📊 [Benchmark] searchTemplatesByKeywordAndRole");
-    console.log("Stage:", explain.queryPlanner.winningPlan.stage);
-    console.log("Index usado:", explain.queryPlanner.winningPlan.inputStage?.indexName || "Ninguno");
-    console.log("Docs examinados:", explain.executionStats.totalDocsExamined);
-    console.log("Documentos retornados:", explain.executionStats.nReturned);
-    console.log("Tiempo:", explain.executionStats.executionTimeMillis + "ms");
 
     const rawTemplates = await templates.find(query).populate({
       path: "author",
@@ -253,20 +242,12 @@ async function searchTemplatesByKeywordAndAuthorId(keyword, authorId, type) {
     validateType(type);
 
     const regex = new RegExp(keyword.trim(), 'i');
+
     const query = {
       content: { $regex: regex },
       author: authorId,
       ...(type && { type })
     };
-    console.log("Keyword:", keyword);
-    // Benchmark
-    const explain = await templates.find(query).explain("executionStats");
-    console.log("📊 [Benchmark] searchTemplatesByKeywordAndAuthorId");
-    console.log("Stage:", explain.queryPlanner.winningPlan.stage);
-    console.log("Index usado:", explain.queryPlanner.winningPlan.inputStage?.indexName || "Ninguno");
-    console.log("Docs examinados:", explain.executionStats.totalDocsExamined);
-    console.log("Documentos retornados:", explain.executionStats.nReturned);
-    console.log("Tiempo:", explain.executionStats.executionTimeMillis + "ms");
 
     const templatesBD = await templates.find(query).populate({
       path: "author",
@@ -289,21 +270,11 @@ async function searchTemplatesByKeyword(q, type) {
     validateType(type);
 
     const regex = new RegExp(q.trim(), 'i');
+
     const query = {
       content: { $regex: regex },
       ...(type && { type })
     };
-    console.log("Keyword:", q);
-
-    // Benchmark
-    const explain = await templates.find(query).explain("executionStats");
-    
-    console.log("📊 [Benchmark] searchTemplatesByKeyword");
-    console.log("Stage:", explain.queryPlanner.winningPlan.stage);
-    console.log("Index usado:", explain.queryPlanner.winningPlan.inputStage?.indexName || "Ninguno");
-    console.log("Docs examinados:", explain.executionStats.totalDocsExamined);
-    console.log("Documentos retornados:", explain.executionStats.nReturned);
-    console.log("Tiempo:", explain.executionStats.executionTimeMillis + "ms");
 
     return await templates.find(query).populate({
       path: "author",
