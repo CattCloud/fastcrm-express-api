@@ -7,6 +7,14 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model Company {
+  id        Int       @id @default(autoincrement())
+  name      String
+  ruc       String    @unique
+  createdAt DateTime  @default(now())
+  contacts  Contact[] 
+}
+
 
 model Contact {
   id        Int      @id @default(autoincrement())
@@ -15,6 +23,8 @@ model Contact {
   authorId  String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  companyId  Int?      // Opcional
+  company    Company?  @relation(fields: [companyId], references: [id])
 
   @@unique([authorId, whatsapp])
 }
