@@ -46,7 +46,7 @@ fastcrm-express-api/
 
 1. **Clonar el repositorio**
 ```bash
-git clone <tu-repositorio>
+git clone https://github.com/CattCloud/fastcrm-express-api
 cd fastcrm-express-api
 ```
 
