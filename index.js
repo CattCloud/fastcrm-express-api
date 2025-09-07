@@ -15,7 +15,7 @@ const routesAuthor = require("./routes/authorRouter");
 const routesTag = require("./routes/tagsRouter");
 const routesContact = require("./routes/contactRouter");
 const routesCompany = require("./routes/companyRouter");
-
+const routesContactLog = require("./routes/contactLogRouter");
 // Middleware base
 app.use(express.json());
 app.use(cors);
@@ -24,6 +24,7 @@ app.use('/author', routesAuthor);
 app.use('/tag', routesTag);
 app.use("/contact",routesContact);
 app.use("/company",routesCompany);
+app.use("/contactlog",routesContactLog);
 
 app.use(mongooseErrorTransform);
 app.use(errorHandler);

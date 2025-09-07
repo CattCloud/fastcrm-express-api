@@ -52,6 +52,41 @@ const findCompanyById = async (id) => {
   }
 };
 
+const getCompaniesByAuthor = async (authorId) => {
+  try {
+    if (!authorId) {
+      throw new AppError("Falta el authorId para filtrar empresas", 400, "validation");
+    }
+    
+    return await prisma.company.findMany({
+      where: {
+        contacts: {
+          some: {
+            authorId: authorId // ← solo empresas donde el usuario tiene al menos un contacto
+          }
+        }
+      },
+      orderBy: { createdAt: 'desc' },
+      include: {
+        contacts: {
+          where: {
+            authorId: authorId // ← solo los contactos del usuario dentro de cada empresa
+          },
+          select: {
+            id: true,
+            name: true,
+            whatsapp: true,
+            authorId: true
+          }
+        }
+      }
+    });
+  } catch (e) {
+    console.log("Error getCompaniesByAuthor:", e);
+    throw e;
+  }
+};
+
 const deleteCompany = async (id) => {
   try {
     return await prisma.company.delete({
@@ -67,5 +102,6 @@ module.exports = {
   createCompany,
   getCompanies,
   findCompanyById,
-  deleteCompany
+  deleteCompany,
+  getCompaniesByAuthor
 };

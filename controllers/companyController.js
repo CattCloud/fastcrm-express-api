@@ -4,8 +4,11 @@ const {
   createCompany,
   getCompanies,
   findCompanyById,
-  deleteCompany
+  deleteCompany,
+  getCompaniesByAuthor
 } = require('../services/companyService');
+const autorService = require("../services/authorsServices");
+
 
 const createCompanyController = async (req, res, next) => {
   try {
@@ -16,6 +19,10 @@ const createCompanyController = async (req, res, next) => {
     }
 
     const validatedData = result.data;
+    const { authorId } = validatedData;
+    //Validar si el autor existe en la bd
+    await autorService.getAuthorByID(authorId);
+
     const newCompany = await createCompany(validatedData);
 
     res.status(201).json({
@@ -40,6 +47,26 @@ const getCompaniesController = async (req, res, next) => {
     next(error);
   }
 };
+
+const getCompaniesByAuthorController = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    console.log("Author ID:", id);
+    if (!id || typeof id !== 'string') {
+      throw new AppError("Parámetro 'authorId' inválido", 400, "validation");
+    }
+    const companies = await getCompaniesByAuthor(id);
+
+    res.status(200).json({
+      companies,
+      total: companies.length
+    });
+  } catch (error) {
+    console.log("Error getCompaniesByAuthorController:", error);
+    next(error);
+  }
+};
+
 
 const findCompanyByIdController = async (req, res, next) => {
   try {
@@ -79,6 +106,7 @@ const deleteCompanyController = async (req, res, next) => {
 module.exports = {
   createCompanyController,
   getCompaniesController,
+  getCompaniesByAuthorController,
   findCompanyByIdController,
   deleteCompanyController
 };

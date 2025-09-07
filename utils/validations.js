@@ -9,7 +9,8 @@ const ContactSchema = z.object({
 
 const CompanySchema = z.object({
   name: z.string().min(2, "El nombre debe tener al menos 2 caracteres").max(100),
-  ruc: z.string().length(11, "El RUC debe tener exactamente 11 dígitos")
+  ruc: z.string().length(11, "El RUC debe tener exactamente 11 dígitos"),
+  authorId: z.string().length(24, "authorId debe tener 24 caracteres"),
 });
 
 
