@@ -1,9 +1,11 @@
+const cors = require('cors');
+
 const allowedOrigins = [
   'http://localhost:5173',
   'https://fastcrm-react-app-production.up.railway.app'
 ];
 
-app.use(cors({
+const middlewareCors = cors({
   origin: function (origin, callback) {
     if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
@@ -12,4 +14,7 @@ app.use(cors({
     }
   },
   credentials: true
-}));
+});
+
+module.exports = middlewareCors;
+
