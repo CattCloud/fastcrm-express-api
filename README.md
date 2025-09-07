@@ -81,7 +81,7 @@ npm run dev
 
 El servidor estará disponible en `http://localhost:3000`
 
-## 🎯 Funcionalidades Principales
+## Funcionalidades Principales
 
 ### 1. Sistema de Autores/Usuarios
 - **Registro y autenticación** de usuarios
@@ -208,8 +208,8 @@ GET    /api/contact-logs/author/:id  # Por autor
 ## Deploy
 
 ### Backend API
-- **Plataforma**: [Render]
-- **URL**: [[Incluir URL del deploy](https://fastcrm-express-api-g728.onrender.com/)]
+- **Plataforma**: Render
+- **URL**: [[Link Render](https://fastcrm-express-api-g728.onrender.com/)]
 - **Base de datos MongoDB**: MongoDB Atlas
 - **Base de datos PostgreSQL**: Neon
 
