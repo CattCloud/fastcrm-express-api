@@ -8,6 +8,22 @@ const cors = require("./middlewares/cors");
 //const insertarPlantillasMasivas = require("./utils/insercionMasiva");
 const { prisma,verificarConexionPostgres} = require('./config/prisma'); // o donde tengas tu inicialización
 
+app.get('/', (req, res) => {
+  res.status(200).json({
+    mensaje: 'Bienvenido a FastCRM API',
+    estado: 'activo',
+    servicios: [
+      '/template',
+      '/author',
+      '/tag',
+      '/contact',
+      '/company',
+      '/contactlog'
+    ],
+    timestamp: new Date().toISOString()
+  });
+});
+
 
 // Rutas principales
 const routesTemplate = require('./routes/templateRoutes');
@@ -19,12 +35,15 @@ const routesContactLog = require("./routes/contactLogRouter");
 // Middleware base
 app.use(express.json());
 app.use(cors);
+
 app.use('/template', routesTemplate);
 app.use('/author', routesAuthor);
 app.use('/tag', routesTag);
 app.use("/contact",routesContact);
 app.use("/company",routesCompany);
 app.use("/contactlog",routesContactLog);
+
+
 
 app.use(mongooseErrorTransform);
 app.use(errorHandler);

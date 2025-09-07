@@ -1,7 +1,7 @@
 const cors = require('cors');
 
 const middlewareCors = cors({
-  origin: 'http://localhost:5173', // o '*' para permitir todos los orígenes (solo en desarrollo)
+  origin: 'http://localhost:5173' || "*",
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   credentials: true
 });
