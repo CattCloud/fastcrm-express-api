@@ -2,7 +2,7 @@ const cors = require('cors');
 
 const allowedOrigins = [
   'http://localhost:5173',
-  'https://fastcrm-react-app-production.up.railway.app'
+  'https://fastcrm-react-app-fat3.onrender.com'
 ];
 
 const middlewareCors = cors({
